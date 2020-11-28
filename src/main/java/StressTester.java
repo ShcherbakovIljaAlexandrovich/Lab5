@@ -48,7 +48,9 @@ public class StressTester {
         System.in.read();
         binding
                 .thenCompose(ServerBinding::unbind)
-                .thenAccept(unbound -> system.terminate());
+                .thenAccept(unbound -> {
+                    system.terminate();
+                });
     }
 
     private static Flow<HttpRequest, HttpResponse, NotUsed> createFlow(ActorMaterializer materializer,
@@ -73,7 +75,7 @@ public class StressTester {
                                 .mapConcat(pair ->  new ArrayList<>(Collections.nCopies(pair.getValue(), pair.getKey())))
                                 .mapAsync(p.getValue(), (String url) -> {
                                     long startTime = System.nanoTime();
-                                    Future<Response> responseFuture = asyncHttpClient().prepareGet(url).execute();
+                                    asyncHttpClient().prepareGet(url).execute();
                                     long stopTime = System.nanoTime();
                                     long execTime = stopTime - startTime;
                                     return CompletableFuture.completedFuture(execTime);
