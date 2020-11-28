@@ -1,6 +1,7 @@
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Props;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
@@ -25,16 +26,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 
+import static org.asynchttpclient.Dsl.asyncHttpClient;
+
 public class StressTester {
     private static final Duration timeout = Duration.ofSeconds(5);
 
     public static void main(String[] args) throws IOException {
         System.out.println("start!");
         ActorSystem system = ActorSystem.create("routes");
+        ActorRef cachingActor = system.actorOf(Props.create(CachingActor.class));
         final Http http = Http.get(system);
         final ActorMaterializer materializer =
                 ActorMaterializer.create(system);
-        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = createFlow(materializer);
+        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = createFlow(materializer, cachingActor);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(
                 routeFlow,
                 ConnectHttp.toHost("localhost", 8080),
@@ -48,8 +52,7 @@ public class StressTester {
     }
 
     private static Flow<HttpRequest, HttpResponse, NotUsed> createFlow(ActorMaterializer materializer,
-                                                                       ActorRef cachingActor,
-                                                                       AsyncHttpClient client) {
+                                                                       ActorRef cachingActor) {
         return Flow.of(HttpRequest.class)
                 .map((req) -> {
                     Query q = req.getUri().query();
@@ -60,15 +63,15 @@ public class StressTester {
                 .mapAsync(1, (Pair<String, Integer> p) -> {
                     CompletionStage<Object> stage = Patterns.ask(cachingActor, new GetMessage(p.getKey()), timeout);
                     return stage.thenCompose((Object res) -> {
-                        if ((int)res >= 0) {
-                            return CompletableFuture.completedFuture(new Pair<>(p.getKey(), (int)res));
+                        if ((long)res >= 0) {
+                            return CompletableFuture.completedFuture(new Pair<>(p.getKey(), (long)res));
                         }
                         Flow<Pair<String, Integer>, Long, NotUsed> flow =
                                 Flow.<Pair<String, Integer>>create()
                                 .mapConcat(pair ->  new ArrayList<>(Collections.nCopies(pair.getValue(), pair.getKey())))
                                 .mapAsync(p.getValue(), (String url) -> {
                                     long startTime = System.nanoTime();
-                                    Future<Response> responseFuture = client.prepareGet(url).execute();
+                                    Future<Response> responseFuture = asyncHttpClient().prepareGet(url).execute();
                                     long stopTime = System.nanoTime();
                                     long execTime = stopTime - startTime;
                                     return CompletableFuture.completedFuture(execTime);
@@ -77,13 +80,12 @@ public class StressTester {
                                 .via(flow)
                                 .toMat(Sink.fold((long)0, Long::sum), Keep.right())
                                 .run(materializer)
-                                .thenApply(sum -> {
-                                    return new Pair<>(p.getKey(), sum/p.getValue());
-                                });
+                                .thenApply(sum -> new Pair<>(p.getKey(), sum/p.getValue()));
                     });
                 })
                 .map((Pair<String, Long> p) -> {
-                    
-                })
+                    cachingActor.tell(new StoreMessage(p.getKey(), p.getValue()), ActorRef.noSender());
+                    return HttpResponse.create().withEntity(p.getValue().toString());
+                });
     }
 }
