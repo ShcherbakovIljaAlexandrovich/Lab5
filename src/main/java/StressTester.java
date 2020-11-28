@@ -55,15 +55,9 @@ public class StressTester {
                                                                        ActorRef cachingActor) {
         return Flow.of(HttpRequest.class)
                 .map((req) -> {
-                    System.out.println("Started parsing request");
                     Query q = req.getUri().query();
-                    System.out.println("Getting url");
                     String url = q.get("testUrl").get();
-                    System.out.println("url = " + url);
-                    System.out.println("Getting count string");
-                    String countString = q.get("count").get();
-                    System.out.println("Converting count to int");
-                    int count = Integer.parseInt(countString);
+                    int count = Integer.parseInt(q.get("count").get());
                     System.out.println(url);
                     System.out.println(count);
                     return new Pair<>(url, count);
