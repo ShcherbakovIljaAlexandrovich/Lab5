@@ -23,10 +23,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9104dad-351f-44df-a313-853545b645fb" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/TestActor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Lab5.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Lab5.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/StressTester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StressTester.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GetMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GetMessage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StoreMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StoreMessage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/TesterActor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CachingActor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
