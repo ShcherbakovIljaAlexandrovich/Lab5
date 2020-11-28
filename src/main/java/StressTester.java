@@ -58,6 +58,8 @@ public class StressTester {
                     Query q = req.getUri().query();
                     String url = q.get("testUrl").get();
                     int count = Integer.parseInt(q.get("count").get());
+                    System.out.println(url);
+                    System.out.println(count);
                     return new Pair<>(url, count);
                 })
                 .mapAsync(1, (Pair<String, Integer> p) -> {
