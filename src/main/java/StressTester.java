@@ -78,9 +78,9 @@ public class StressTester {
                                 Flow.<Pair<String, Integer>>create()
                                 .mapConcat(pair ->  new ArrayList<>(Collections.nCopies(pair.getValue(), pair.getKey())))
                                 .mapAsync(p.getValue(), (String url) -> {
-                                    long startTime = System.nanoTime();
+                                    long startTime = System.currentTimeMillis();
                                     asyncHttpClient().prepareGet(url).execute();
-                                    long stopTime = System.nanoTime();
+                                    long stopTime = System.currentTimeMillis();
                                     long execTime = stopTime - startTime;
                                     return CompletableFuture.completedFuture(execTime);
                                 });
