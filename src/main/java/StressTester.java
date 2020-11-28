@@ -93,7 +93,7 @@ public class StressTester {
                 })
                 .map((Pair<String, Long> p) -> {
                     cachingActor.tell(new StoreMessage(p.getKey(), p.getValue()), ActorRef.noSender());
-                    return HttpResponse.create().withEntity(p.getValue().toString());
+                    return HttpResponse.create().withEntity(p.getValue().toString() + "\n");
                 });
     }
 }
