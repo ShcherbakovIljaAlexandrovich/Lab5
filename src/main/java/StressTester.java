@@ -60,7 +60,7 @@ public class StressTester {
                     System.out.println("Getting url");
                     String url = q.get("testUrl").get();
                     System.out.println("Getting count");
-                    int count = Integer.parseInt(q.get("count").get());
+                    Integer count = Integer.parseInt(q.get("count").get());
                     System.out.println(url);
                     System.out.println(count);
                     return new Pair<>(url, count);
