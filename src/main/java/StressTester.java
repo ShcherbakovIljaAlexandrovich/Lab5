@@ -33,13 +33,12 @@ public class StressTester {
 
     public static void main(String[] args) throws IOException {
         System.out.println("start!");
-        AsyncHttpClient client = asyncHttpClient();
         ActorSystem system = ActorSystem.create("routes");
         ActorRef cachingActor = system.actorOf(Props.create(CachingActor.class));
         final Http http = Http.get(system);
         final ActorMaterializer materializer =
                 ActorMaterializer.create(system);
-        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = createFlow(materializer, cachingActor, client);
+        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = createFlow(materializer, cachingActor);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(
                 routeFlow,
                 ConnectHttp.toHost("localhost", 8080),
@@ -53,10 +52,10 @@ public class StressTester {
     }
 
     private static Flow<HttpRequest, HttpResponse, NotUsed> createFlow(ActorMaterializer materializer,
-                                                                       ActorRef cachingActor,
-                                                                       AsyncHttpClient client) {
+                                                                       ActorRef cachingActor) {
         return Flow.of(HttpRequest.class)
                 .map((req) -> {
+                    System.out.println("Started parsing request");
                     Query q = req.getUri().query();
                     String url = q.get("testUrl").get();
                     int count = Integer.parseInt(q.get("count").get());
@@ -75,7 +74,7 @@ public class StressTester {
                                 .mapConcat(pair ->  new ArrayList<>(Collections.nCopies(pair.getValue(), pair.getKey())))
                                 .mapAsync(p.getValue(), (String url) -> {
                                     long startTime = System.nanoTime();
-                                    client.prepareGet(url).execute();
+                                    asyncHttpClient().prepareGet(url).execute();
                                     long stopTime = System.nanoTime();
                                     long execTime = stopTime - startTime;
                                     return CompletableFuture.completedFuture(execTime);
