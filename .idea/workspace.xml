@@ -22,9 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c9104dad-351f-44df-a313-853545b645fb" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/StressTester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StressTester.java" afterDir="false" />
-    </list>
+    <list default="true" id="c9104dad-351f-44df-a313-853545b645fb" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
