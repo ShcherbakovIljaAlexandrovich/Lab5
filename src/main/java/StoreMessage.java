@@ -1,8 +1,8 @@
 public class StoreMessage {
     private final String url;
-    private final int time;
+    private final long time;
 
-    public StoreMessage(String url, int time) {
+    public StoreMessage(String url, long time) {
         this.url = url;
         this.time = time;
     }
@@ -11,7 +11,7 @@ public class StoreMessage {
         return url;
     }
 
-    public int getTime() {
+    public long getTime() {
         return time;
     }
 }

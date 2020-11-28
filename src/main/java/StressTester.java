@@ -10,15 +10,23 @@ import akka.http.javadsl.model.Query;
 import akka.pattern.Patterns;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
+import akka.stream.javadsl.Keep;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
 import akka.util.Timeout;
 import javafx.util.Pair;
+import org.asynchttpclient.*;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Future;
 
 public class StressTester {
-    private static final Timeout timeout = Timeout.create(Duration.ofSeconds(5));
+    private static final Duration timeout = Duration.ofSeconds(5);
 
     public static void main(String[] args) throws IOException {
         System.out.println("start!");
@@ -40,7 +48,8 @@ public class StressTester {
     }
 
     private static Flow<HttpRequest, HttpResponse, NotUsed> createFlow(ActorMaterializer materializer,
-                                                                       ActorRef cachingActor) {
+                                                                       ActorRef cachingActor,
+                                                                       AsyncHttpClient client) {
         return Flow.of(HttpRequest.class)
                 .map((req) -> {
                     Query q = req.getUri().query();
@@ -50,7 +59,31 @@ public class StressTester {
                 })
                 .mapAsync(1, (Pair<String, Integer> p) -> {
                     CompletionStage<Object> stage = Patterns.ask(cachingActor, new GetMessage(p.getKey()), timeout);
-
+                    return stage.thenCompose((Object res) -> {
+                        if ((int)res >= 0) {
+                            return CompletableFuture.completedFuture(new Pair<>(p.getKey(), (int)res));
+                        }
+                        Flow<Pair<String, Integer>, Long, NotUsed> flow =
+                                Flow.<Pair<String, Integer>>create()
+                                .mapConcat(pair ->  new ArrayList<>(Collections.nCopies(pair.getValue(), pair.getKey())))
+                                .mapAsync(p.getValue(), (String url) -> {
+                                    long startTime = System.nanoTime();
+                                    Future<Response> responseFuture = client.prepareGet(url).execute();
+                                    long stopTime = System.nanoTime();
+                                    long execTime = stopTime - startTime;
+                                    return CompletableFuture.completedFuture(execTime);
+                                });
+                        return Source.single(p)
+                                .via(flow)
+                                .toMat(Sink.fold((long)0, Long::sum), Keep.right())
+                                .run(materializer)
+                                .thenApply(sum -> {
+                                    return new Pair<>(p.getKey(), sum/p.getValue());
+                                });
+                    });
+                })
+                .map((Pair<String, Long> p) -> {
+                    
                 })
     }
 }
