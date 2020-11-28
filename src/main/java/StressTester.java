@@ -57,6 +57,7 @@ public class StressTester {
                 .map((req) -> {
                     System.out.println("Started parsing request");
                     Query q = req.getUri().query();
+                    System.out.println("Getting params");
                     String url = q.get("testUrl").get();
                     int count = Integer.parseInt(q.get("count").get());
                     System.out.println(url);
